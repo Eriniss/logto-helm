@@ -2,7 +2,7 @@ apiVersion: v2
 name: logto
 description: Logto - open-source auth infrastructure (OIDC / OAuth 2.1 / SAML) using the official Docker image
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "1.45.0"
 kubeVersion: ">=1.25.0-0"
 home: https://github.com/Eriniss/logto-helm

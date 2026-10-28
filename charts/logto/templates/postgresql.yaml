@@ -53,8 +53,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "logto.fullname" . }}-db
-                  key: password
+                  name: {{ include "logto.postgresql.secretName" . }}
+                  key: {{ include "logto.postgresql.secretKey" . }}
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:

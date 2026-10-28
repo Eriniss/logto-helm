@@ -9,6 +9,7 @@ Ready-to-use values files. Replace `example.com` hostnames and the Gateway refer
 | [private-admin-console.yaml](private-admin-console.yaml) | Public core, Admin Console only via port-forward |
 | [external-database.yaml](external-database.yaml) | Any external PostgreSQL via an existing secret or URL |
 | [cloudnative-pg/](cloudnative-pg/) | CloudNativePG `Cluster` manifest + matching values |
+| [gitops.yaml](gitops.yaml) | Argo CD / Flux: built-in PostgreSQL with a password from your own secret |
 | [production.yaml](production.yaml) | CNPG, 2 replicas, anti-affinity, resources, pinned tag |
 
 ```bash

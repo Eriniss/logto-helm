@@ -100,6 +100,24 @@ externalDatabase:
   existingSecret: logto-pg-app
 ```
 
+## GitOps (Argo CD, Flux)
+
+When the built-in PostgreSQL password is left empty, the chart generates one and keeps it across upgrades with Helm's `lookup`. Tools that render without cluster access (Argo CD, `helm template`) can't do that lookup, so they'd generate a new password on every sync and Logto would lose its DB connection.
+
+With GitOps, either use an external database, or provide the password from a secret you manage (Sealed Secrets, External Secrets, SOPS, ...):
+
+```bash
+kubectl -n logto create secret generic logto-postgresql --from-literal=password="$(openssl rand -hex 24)"
+```
+
+```yaml
+postgresql:
+  auth:
+    existingSecret: logto-postgresql
+```
+
+The password must be URL-safe (letters, digits, `-`, `_`, `.`, `~`): it's inserted into the connection URL as-is. PostgreSQL only reads it when the database is first created, so changing it later requires changing it inside PostgreSQL too.
+
 More in [examples/](https://github.com/Eriniss/logto-helm/tree/main/examples).
 
 ## Values
@@ -124,7 +142,8 @@ More in [examples/](https://github.com/Eriniss/logto-helm/tree/main/examples).
 | `postgresql.enabled` | `true` | Built-in PostgreSQL |
 | `postgresql.image.repository` / `tag` | `postgres` / `17-alpine` | PostgreSQL image |
 | `postgresql.auth.username` / `database` | `logto` / `logto` | DB user / name |
-| `postgresql.auth.password` | `""` | Generated and kept across upgrades when empty |
+| `postgresql.auth.password` | `""` | Generated and kept across upgrades when empty (see [GitOps](#gitops-argo-cd-flux)) |
+| `postgresql.auth.existingSecret` / `existingSecretPasswordKey` | `""` / `password` | Existing secret with the built-in DB password (URL-safe) |
 | `postgresql.persistence.enabled` | `true` | Use a PVC (otherwise `emptyDir`) |
 | `postgresql.persistence.storageClass` | `""` | Empty = cluster default |
 | `postgresql.persistence.size` | `8Gi` | PVC size |

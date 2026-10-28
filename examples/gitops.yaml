@@ -1,0 +1,20 @@
+# Argo CD / Flux friendly setup with the built-in PostgreSQL.
+#
+# GitOps tools render charts without cluster access, so the chart can't keep a generated
+# password across syncs. Provide it from a secret you manage instead (Sealed Secrets,
+# External Secrets, SOPS, ...). The password must be URL-safe:
+#
+#   kubectl -n logto create secret generic logto-postgresql \
+#     --from-literal=password="$(openssl rand -hex 24)"
+
+postgresql:
+  auth:
+    existingSecret: logto-postgresql
+    existingSecretPasswordKey: password
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+httpRoute:
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway

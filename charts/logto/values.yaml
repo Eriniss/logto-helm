@@ -61,8 +61,14 @@ postgresql:
   auth:
     username: logto
     database: logto
-    # -- Generated (and kept across upgrades) when empty
+    # -- Generated (and kept across upgrades via `lookup`) when empty.
+    # Only applied when the database is first created; changing it later breaks the connection.
     password: ""
+    # -- Existing secret with the password (recommended for Argo CD / Flux, where `lookup`
+    # is unavailable and a generated password would change on every render).
+    # The password must be URL-safe (it is inserted into DB_URL as-is).
+    existingSecret: ""
+    existingSecretPasswordKey: password
   persistence:
     enabled: true
     # -- Empty uses the cluster default StorageClass
