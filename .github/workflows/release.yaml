@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - charts/**
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.18.4
+
+      # Publishes a GitHub Release + gh-pages Helm repo index for every new chart version
+      - name: Run chart-releaser
+        id: cr
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          skip_existing: true
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pushes the same packages to oci://ghcr.io/<owner>/charts
+      - name: Push to GHCR
+        if: steps.cr.outputs.changed_charts != ''
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          for pkg in .cr-release-packages/*.tgz; do
+            helm push "$pkg" "oci://ghcr.io/${owner}/charts"
+          done

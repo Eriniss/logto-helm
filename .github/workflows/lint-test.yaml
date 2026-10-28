@@ -1,0 +1,46 @@
+name: Lint and Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.18.4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - uses: helm/chart-testing-action@v2.7.0
+
+      - name: Lint
+        run: ct lint --config ct.yaml --all
+
+      - name: Render examples
+        run: |
+          for f in examples/*.yaml examples/cloudnative-pg/values.yaml; do
+            echo "::group::$f"
+            helm template logto charts/logto -f "$f" > /dev/null
+            echo "::endgroup::"
+          done
+
+      - uses: helm/kind-action@v1.12.0
+
+      - name: Install Gateway API CRDs
+        run: kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+
+      - name: Install and test
+        run: ct install --config ct.yaml --all

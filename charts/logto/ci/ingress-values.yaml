@@ -1,0 +1,9 @@
+endpoint: https://logto.example.com
+httpRoute:
+  enabled: false
+ingress:
+  enabled: true
+  tlsSecretName: logto-tls
+postgresql:
+  persistence:
+    enabled: false

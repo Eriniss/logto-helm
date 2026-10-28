@@ -1,0 +1,15 @@
+# Logto behind a Gateway API Gateway (Envoy Gateway, Cilium, Istio, NGINX Gateway Fabric, ...)
+# with the built-in PostgreSQL.
+#
+#   helm install logto logto/logto -n logto --create-namespace -f gateway-api.yaml
+#
+# The Gateway must have an HTTPS listener whose certificate covers both hostnames.
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+
+httpRoute:
+  parentRefs:
+    - name: my-gateway      # your Gateway
+      namespace: gateway    # namespace of the Gateway
+      sectionName: https    # optional: listener name

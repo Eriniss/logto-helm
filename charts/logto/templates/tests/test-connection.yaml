@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "logto.fullname" . }}-test
+  labels:
+    {{- include "logto.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: status
+      image: {{ include "logto.image" . }}
+      command:
+        - sh
+        - -c
+        - |
+          wget -q -S -O /dev/null http://{{ include "logto.fullname" . }}:{{ .Values.service.port }}/api/status 2>&1 | grep -q "204"

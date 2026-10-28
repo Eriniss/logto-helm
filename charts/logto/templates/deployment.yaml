@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "logto.fullname" . }}
+  labels:
+    {{- include "logto.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "logto.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: logto
+  template:
+    metadata:
+      annotations:
+        {{- /* Roll pods when the DB secret changes */}}
+        checksum/db: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "logto.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: logto
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.migrations.enabled }}
+      initContainers:
+        - name: migrate
+          image: {{ include "logto.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              npm run --silent cli db seed -- --swe
+              npm run --silent cli db alteration deploy latest
+          env:
+            {{- include "logto.env" . | nindent 12 }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      containers:
+        - name: logto
+          image: {{ include "logto.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- include "logto.env" . | nindent 12 }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 3001
+            - name: admin
+              containerPort: 3002
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 20
+            failureThreshold: 3
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,41 @@
+{{- if and .Values.ingress.enabled .Values.endpoint }}
+{{- $hosts := list (dict "url" .Values.endpoint "port" "http") }}
+{{- with .Values.adminEndpoint }}
+{{- $hosts = append $hosts (dict "url" . "port" "admin") }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "logto.fullname" . }}
+  labels:
+    {{- include "logto.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if .Values.ingress.tlsSecretName }}
+  tls:
+    - secretName: {{ .Values.ingress.tlsSecretName }}
+      hosts:
+        {{- range $hosts }}
+        - {{ include "logto.host" .url | quote }}
+        {{- end }}
+  {{- end }}
+  rules:
+    {{- range $hosts }}
+    - host: {{ include "logto.host" .url | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "logto.fullname" $ }}
+                port:
+                  name: {{ .port }}
+    {{- end }}
+{{- end }}

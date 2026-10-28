@@ -1,0 +1,31 @@
+{{- if and .Values.httpRoute.enabled .Values.endpoint }}
+{{- if not .Values.httpRoute.parentRefs }}
+{{- fail "httpRoute.enabled=true requires httpRoute.parentRefs (or set httpRoute.enabled=false)" }}
+{{- end }}
+{{- $routes := list (dict "suffix" "" "url" .Values.endpoint "port" .Values.service.port) }}
+{{- with .Values.adminEndpoint }}
+{{- $routes = append $routes (dict "suffix" "-admin" "url" . "port" $.Values.service.adminPort) }}
+{{- end }}
+{{- range $routes }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "logto.fullname" $ }}{{ .suffix }}
+  labels:
+    {{- include "logto.labels" $ | nindent 4 }}
+  {{- with $.Values.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml $.Values.httpRoute.parentRefs | nindent 4 }}
+  hostnames:
+    - {{ include "logto.host" .url | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ include "logto.fullname" $ }}
+          port: {{ .port }}
+{{- end }}
+{{- end }}

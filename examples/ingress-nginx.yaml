@@ -1,0 +1,16 @@
+# Logto behind ingress-nginx with a cert-manager certificate and the built-in PostgreSQL.
+#
+#   helm install logto logto/logto -n logto --create-namespace -f ingress-nginx.yaml
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+
+httpRoute:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt   # your ClusterIssuer
+  tlsSecretName: logto-tls                        # created by cert-manager for both hosts

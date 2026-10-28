@@ -1,0 +1,25 @@
+Logto {{ .Chart.AppVersion }} is deploying.
+
+{{- if .Values.endpoint }}
+
+  Logto core:     {{ .Values.endpoint }}
+{{- else }}
+
+  Logto core (port-forward):
+    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "logto.fullname" . }} 3001
+    open http://localhost:3001
+{{- end }}
+{{- if .Values.adminEndpoint }}
+  Admin Console:  {{ .Values.adminEndpoint }}
+{{- else }}
+
+  Admin Console (not exposed; port-forward):
+    kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "logto.fullname" . }} 3002
+    open http://localhost:3002
+{{- end }}
+
+The first account created in the Admin Console becomes the admin.
+{{- if and .Values.httpRoute.enabled .Values.ingress.enabled }}
+
+WARNING: both httpRoute and ingress are enabled.
+{{- end }}

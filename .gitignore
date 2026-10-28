@@ -1,0 +1,6 @@
+.DS_Store
+*.tgz
+.cr-release-packages/
+.cr-index/
+.idea/
+.vscode/

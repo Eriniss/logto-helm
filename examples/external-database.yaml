@@ -1,0 +1,22 @@
+# Use an existing PostgreSQL server (managed DB, RDS, Cloud SQL, ...).
+# The user needs the CREATEROLE privilege: Logto's seed creates `logto_tenant_*` roles.
+#
+# Store the connection URL in a secret first:
+#   kubectl -n logto create secret generic logto-database \
+#     --from-literal=uri='postgresql://logto:CHANGE_ME@db.example.com:5432/logto'
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  existingSecret: logto-database
+  existingSecretKey: uri
+  # Or, less securely, inline (stored in a chart-managed secret):
+  # url: postgresql://logto:CHANGE_ME@db.example.com:5432/logto
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+httpRoute:
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway

@@ -1,0 +1,10 @@
+# Requires Gateway API CRDs (installed by CI); no controller needed
+endpoint: https://logto.example.com
+adminEndpoint: https://logto-admin.example.com
+httpRoute:
+  parentRefs:
+    - name: gateway
+      namespace: gateway
+postgresql:
+  persistence:
+    enabled: false

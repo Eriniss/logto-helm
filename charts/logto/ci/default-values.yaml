@@ -1,0 +1,4 @@
+# Built-in PostgreSQL, no routes (port-forward mode)
+postgresql:
+  persistence:
+    enabled: false

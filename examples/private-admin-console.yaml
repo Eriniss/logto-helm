@@ -1,0 +1,12 @@
+# Expose only the Logto core publicly. The Admin Console stays inside the cluster:
+#
+#   kubectl -n logto port-forward svc/logto 3002
+#   open http://localhost:3002
+
+endpoint: https://auth.example.com
+# adminEndpoint is left empty -> no admin route is created
+
+httpRoute:
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway

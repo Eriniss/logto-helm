@@ -1,0 +1,30 @@
+apiVersion: v2
+name: logto
+description: Logto - open-source auth infrastructure (OIDC / OAuth 2.1 / SAML) using the official Docker image
+type: application
+version: 0.1.0
+appVersion: "1.45.0"
+kubeVersion: ">=1.25.0-0"
+home: https://github.com/Eriniss/logto-helm
+icon: https://logto.io/logo.svg
+sources:
+  - https://github.com/Eriniss/logto-helm
+  - https://github.com/logto-io/logto
+keywords:
+  - logto
+  - auth
+  - authentication
+  - oidc
+  - oauth
+  - sso
+  - identity
+maintainers:
+  - name: Eriniss
+    url: https://github.com/Eriniss
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/images: |
+    - name: logto
+      image: svhd/logto:1.45.0
+    - name: postgresql
+      image: postgres:17-alpine

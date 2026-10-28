@@ -1,0 +1,19 @@
+# Logto on a CloudNativePG cluster (see cluster.yaml).
+#
+#   kubectl -n logto apply -f cluster.yaml
+#   kubectl -n logto wait clusters.postgresql.cnpg.io/logto-pg --for=condition=Ready --timeout=5m
+#   helm install logto logto/logto -n logto -f values.yaml
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  existingSecret: logto-pg-app   # <cluster-name>-app
+  existingSecretKey: uri
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+httpRoute:
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway

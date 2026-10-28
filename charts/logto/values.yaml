@@ -1,0 +1,98 @@
+# -- Official Logto image (https://hub.docker.com/r/svhd/logto)
+image:
+  repository: svhd/logto
+  # -- Defaults to the chart appVersion
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+# -- Public URL of the Logto core (sign-in, OIDC). Sets ENDPOINT.
+# e.g. https://auth.example.com
+endpoint: ""
+# -- Public URL of the Admin Console. Sets ADMIN_ENDPOINT.
+# Leave empty to keep the console private (reach it with `kubectl port-forward svc/<release> 3002`).
+adminEndpoint: ""
+# -- Trust X-Forwarded-* headers from the gateway / ingress. Sets TRUST_PROXY_HEADER.
+trustProxyHeader: true
+
+# -- Run `db seed --swe` and `db alteration deploy latest` in an init container
+# before Logto starts. Safe to keep on: both are no-ops when the DB is up to date.
+migrations:
+  enabled: true
+
+# -- Extra environment variables for the Logto container (list of EnvVar)
+extraEnv: []
+# -- Extra envFrom sources for the Logto container
+extraEnvFrom: []
+
+resources: {}
+#  requests:
+#    cpu: 100m
+#    memory: 256Mi
+#  limits:
+#    memory: 1Gi
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+service:
+  type: ClusterIP
+  port: 3001
+  adminPort: 3002
+
+# -- Built-in PostgreSQL (official `postgres` image, single-instance StatefulSet).
+# Disable it to use an external database (e.g. CloudNativePG) via `externalDatabase`.
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 17-alpine
+    pullPolicy: IfNotPresent
+  auth:
+    username: logto
+    database: logto
+    # -- Generated (and kept across upgrades) when empty
+    password: ""
+  persistence:
+    enabled: true
+    # -- Empty uses the cluster default StorageClass
+    storageClass: ""
+    size: 8Gi
+  resources: {}
+
+# -- Used when `postgresql.enabled=false`. Set ONE of `url` or `existingSecret`.
+# The DB user must be able to create roles (Logto seed creates `logto_tenant_*` roles).
+externalDatabase:
+  # -- Full connection URL, e.g. postgresql://user:pass@host:5432/logto
+  url: ""
+  # -- Existing secret holding the URL, e.g. the CloudNativePG `<cluster>-app` / `<cluster>-superuser` secret
+  existingSecret: ""
+  existingSecretKey: uri
+
+# -- Gateway API HTTPRoute (default). Rendered when `endpoint` is set; hostnames come from `endpoint` / `adminEndpoint`.
+httpRoute:
+  enabled: true
+  annotations: {}
+  # -- Gateway(s) to attach to, e.g.
+  #  - name: my-gateway
+  #    namespace: gateway
+  #    sectionName: https
+  parentRefs: []
+
+# -- Classic Ingress (alternative to httpRoute; set httpRoute.enabled=false). Rendered when `endpoint` is set.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # -- Secret name for TLS covering both hosts; empty means no `tls` block
+  tlsSecretName: ""

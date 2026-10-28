@@ -1,0 +1,38 @@
+# A production-leaning setup: CloudNativePG (see cloudnative-pg/), two replicas spread
+# across nodes, resource requests/limits and a pinned image tag.
+
+image:
+  tag: "1.45.0"   # pin; bump deliberately (DB alterations run on upgrade - back up first)
+
+replicaCount: 2
+
+endpoint: https://auth.example.com
+adminEndpoint: https://auth-admin.example.com
+
+httpRoute:
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway
+
+postgresql:
+  enabled: false
+externalDatabase:
+  existingSecret: logto-pg-app
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    memory: 1Gi
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: logto
+              app.kubernetes.io/component: logto

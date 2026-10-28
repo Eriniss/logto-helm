@@ -1,0 +1,23 @@
+# CloudNativePG cluster for Logto.
+#   kubectl -n logto apply -f cluster.yaml
+#
+# CNPG creates the `logto-pg-app` secret (with a `uri` key) that the chart reads.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: logto-pg
+spec:
+  instances: 3
+  storage:
+    size: 10Gi
+  bootstrap:
+    initdb:
+      database: logto
+      owner: logto
+  # Logto's seed creates roles, so the owner needs CREATEROLE
+  managed:
+    roles:
+      - name: logto
+        ensure: present
+        login: true
+        createrole: true
