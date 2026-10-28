@@ -26,8 +26,14 @@ jobs:
 
       - uses: helm/chart-testing-action@v2.7.0
 
+      # PRs: lint changed charts and require a version bump. Pushes: lint everything.
       - name: Lint
-        run: ct lint --config ct.yaml --all
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ct lint --config ct.yaml
+          else
+            ct lint --config ct.yaml --all --check-version-increment=false
+          fi
 
       - name: Render examples
         run: |
