@@ -20,9 +20,10 @@ jobs:
         with:
           version: v3.18.4
 
+      # ct's bundled yamale uses ast.Num, which was removed in Python 3.14
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.13"
 
       - uses: helm/chart-testing-action@v2.7.0
 
